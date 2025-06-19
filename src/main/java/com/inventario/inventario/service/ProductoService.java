@@ -47,7 +47,7 @@ public class ProductoService {
             holder.setStock(producto.getStock());
             holder.setMarca(producto.getMarca());
 
-            return holder;
+            return productoRepository.save(holder);
         }
         return null;
 
