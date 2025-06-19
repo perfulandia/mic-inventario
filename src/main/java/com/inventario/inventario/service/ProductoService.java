@@ -42,6 +42,7 @@ public class ProductoService {
         Producto holder = productoRepository.findById(id).get();
 
         if (producto != null){
+            holder.setActivo(producto.isActivo());
             holder.setNombre(producto.getNombre());
             holder.setPrecio(producto.getPrecio());
             holder.setStock(producto.getStock());
