@@ -33,8 +33,8 @@ public class ProductoServiceTest {
 
     @Test
     void testFindAll() {
-        Producto p1 = new Producto(null, "Playstation 2", 20000L, 32, "Sony");
-        Producto p2 = new Producto(null, "Xbox One", 15000L, 64, "Microsoft");
+        Producto p1 = new Producto(null, true, "Playstation 2", 20000L, 32, "Sony");
+        Producto p2 = new Producto(null, true, "Xbox One", 15000L, 64, "Microsoft");
         when(productoRepository.findAll()).thenReturn(Arrays.asList(p1, p2));
 
         List<Producto> resultado = productoService.findAll();
@@ -44,7 +44,7 @@ public class ProductoServiceTest {
 
     @Test
     void testFindById() {
-        Producto producto = new Producto(1L, "Playstation 2", 20000L, 32, "Sony");
+        Producto producto = new Producto(1L, true, "Playstation 2", 20000L, 32, "Sony");
         when(productoRepository.findById(1L)).thenReturn(Optional.of(producto));
 
         Producto resultado = productoService.findById(1L).get();
@@ -56,8 +56,8 @@ public class ProductoServiceTest {
 
     @Test
     public void testFindAllById() {
-        Producto p1 = new Producto(1L, "Xbox Series X", 45000L, 15, "Microsoft");
-        Producto p2 = new Producto(2L, "PlayStation 5", 50000L, 20, "Sony");
+        Producto p1 = new Producto(1L, true, "Xbox Series X", 45000L, 15, "Microsoft");
+        Producto p2 = new Producto(2L, true, "PlayStation 5", 50000L, 20, "Sony");
 
         List<Long> ids = Arrays.asList(1L, 2L);
         List<Producto> mockProductos = Arrays.asList(p1, p2);
@@ -73,20 +73,20 @@ public class ProductoServiceTest {
 
     // EXISTS BY ID
     @Test
-    void testExistsById(){
+    void testExistsById() {
         Long idExistente = 1L;
         when(productoRepository.existsById(idExistente)).thenReturn(true);
 
         boolean resultado = productoService.existsById(idExistente);
-        
+
         assertTrue(resultado);
         verify(productoRepository).existsById(idExistente);
     }
 
     @Test
     void testSave() {
-        Producto producto = new Producto(null, "Playstation 2", 20000L, 32, "Sony");
-        Producto productoGuardado = new Producto(1L, "Playstation 2", 20000L, 32, "Sony");
+        Producto producto = new Producto(null, true, "Playstation 2", 20000L, 32, "Sony");
+        Producto productoGuardado = new Producto(1L, true, "Playstation 2", 20000L, 32, "Sony");
 
         when(productoRepository.save(producto)).thenReturn(productoGuardado);
 
@@ -99,8 +99,8 @@ public class ProductoServiceTest {
 
     @Test
     void testUpdate() {
-        Producto p1 = new Producto(1L, "Playstation 2", 20000L, 32, "Sony");
-        Producto p2 = new Producto(1L, "Xbox One", 15000L, 64, "Microsoft");
+        Producto p1 = new Producto(1L, true, "Playstation 2", 20000L, 32, "Sony");
+        Producto p2 = new Producto(1L, true, "Xbox One", 15000L, 64, "Microsoft");
 
         when(productoRepository.findById(1L)).thenReturn(Optional.of(p1));
 
@@ -111,7 +111,7 @@ public class ProductoServiceTest {
 
     @Test
     public void testDeleteById() {
-        Producto existingProduct = new Producto(1L, "Xbox One", 15000L, 64, "Microsoft");
+        Producto existingProduct = new Producto(1L, true, "Xbox One", 15000L, 64, "Microsoft");
 
         when(productoRepository.findById(1L)).thenReturn(Optional.of(existingProduct));
 

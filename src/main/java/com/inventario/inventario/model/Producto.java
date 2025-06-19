@@ -21,6 +21,9 @@ public class Producto {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
+    @Column(nullable = false)
+    private boolean activo;
+    
     @Column(length = 100, nullable = false, unique = true)
     private String nombre;
 
