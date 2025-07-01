@@ -25,45 +25,45 @@ public class ProductoController {
 
     // obtener todos los productos
     @GetMapping
-    public ResponseEntity<List<Producto>> getProductos(){
+    public ResponseEntity<List<Producto>> getProductos() {
         List<Producto> productos = productoService.findAll();
 
-        if (!productos.isEmpty()){
+        if (!productos.isEmpty()) {
             return new ResponseEntity<>(productos, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-    
+
     // obtener producto segun su id
     @GetMapping("/id/{id}")
-    public ResponseEntity<Producto> findProducto(@PathVariable Long id){
+    public ResponseEntity<Producto> findProducto(@PathVariable Long id) {
 
-        if (productoService.existsById(id)){
+        if (productoService.existsById(id)) {
             return new ResponseEntity<>(productoService.findById(id).get(), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-    
+
     // obtener una lista de productos pasando sus id's
     @GetMapping("/by-id/")
-    public ResponseEntity<List<Producto>> getProductosById(@RequestParam List<Long> ids){
+    public ResponseEntity<List<Producto>> getProductosById(@RequestParam List<Long> ids) {
         return new ResponseEntity<>(productoService.findAllById(ids), HttpStatus.OK);
     }
-    
+
     // guardar producto si el id no esta utilizado
     @PostMapping
-    public ResponseEntity<Producto> saveProducto(@RequestBody Producto producto){
-        if (!productoService.existsById(producto.getId())){
-        return new ResponseEntity<>(productoService.save(producto), HttpStatus.OK);
-    }
-    return new ResponseEntity<>(HttpStatus.CONFLICT);
+    public ResponseEntity<Producto> saveProducto(@RequestBody Producto producto) {
+        if (!productoService.existsById(producto.getId())) {
+            return new ResponseEntity<>(productoService.save(producto), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.CONFLICT);
     }
 
     // actualizar producto por id
     @PutMapping("/id/{id}")
-    public ResponseEntity<Producto> updateProducto(@PathVariable Long id, @RequestBody Producto producto){
+    public ResponseEntity<Producto> updateProducto(@PathVariable Long id, @RequestBody Producto producto) {
 
-        if (productoService.existsById(id)){
+        if (productoService.existsById(id)) {
             return new ResponseEntity<>(productoService.update(id, producto), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -71,8 +71,8 @@ public class ProductoController {
 
     // eliminar producto por id
     @DeleteMapping("/id/{id}")
-    public ResponseEntity<Void> deleteProducto(@PathVariable Long id){
-        if (productoService.existsById(id)){
+    public ResponseEntity<Void> deleteProducto(@PathVariable Long id) {
+        if (productoService.existsById(id)) {
             productoService.deleteById(id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
