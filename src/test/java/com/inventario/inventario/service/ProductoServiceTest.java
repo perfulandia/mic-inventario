@@ -116,7 +116,7 @@ public class ProductoServiceTest {
 
         productoService.deleteById(1L);
 
-        verify(productoRepository).deleteById(1L);
+        assertThat(existingProduct.getActivo()).isEqualTo(false);
     }
 
 }

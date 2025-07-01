@@ -55,6 +55,9 @@ public class ProductoService {
     }
 
     public void deleteById(Long id){
-        productoRepository.deleteById(id);
+        Producto holder = productoRepository.findById(id).get();
+
+        holder.setActivo(false);
+        productoRepository.save(holder);
     }
 }
