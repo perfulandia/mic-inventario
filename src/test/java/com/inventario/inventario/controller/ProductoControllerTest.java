@@ -2,218 +2,218 @@ package com.inventario.inventario.controller;
 
 import com.inventario.inventario.model.Producto;
 import com.inventario.inventario.service.ProductoService;
-import org.junit.jupiter.api.BeforeEach;
+import com.fasterxml.jackson.databind.ObjectMapper; // Import ObjectMapper for JSON conversion
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.hamcrest.Matchers.*;
 
+@WebMvcTest(ProductoController.class)
 public class ProductoControllerTest {
 
-    @Mock
-    private ProductoService productoService;
+        @Autowired
+        private MockMvc mockMvc;
 
-    @InjectMocks
-    private ProductoController productoController;
+        @MockBean
+        private ProductoService productoService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
+        @Autowired
+        private ObjectMapper objectMapper;
 
-    @Test
-    void testGetProductos_ReturnsOkWhenProductsExist() {
-        // Arrange
-        List<Producto> productos = Arrays.asList(
-                new Producto(1L, true, "Laptop", 1200L, 10, "Dell"),
-                new Producto(2L, true, "Mouse", 25L, 50, "Logitech")
-        );
-        when(productoService.findAll()).thenReturn(productos);
+        @Test
+        void testGetProductos_ReturnsOkWhenProductsExist() throws Exception {
 
-        // Act
-        ResponseEntity<List<Producto>> response = productoController.getProductos();
+                List<Producto> productos = Arrays.asList(
+                                new Producto(1L, true, "Playstation 3", 1200L, 10, "Sony"),
+                                new Producto(2L, true, "Xbox 360", 2500L, 50, "Microsoft"));
+                when(productoService.findAll()).thenReturn(productos);
 
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(productos, response.getBody());
-        verify(productoService, times(1)).findAll();
-    }
+                mockMvc.perform(get("/api/v1/productos")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$", hasSize(2)))
+                                .andExpect(jsonPath("$[0].nombre", is("Playstation 3")))
+                                .andExpect(jsonPath("$[1].nombre", is("Xbox 360")));
 
-    @Test
-    void testGetProductos_ReturnsNoContentWhenNoProducts() {
-        // Arrange
-        List<Producto> productos = Arrays.asList();
-        when(productoService.findAll()).thenReturn(productos);
+                verify(productoService, times(1)).findAll();
+        }
 
-        // Act
-        ResponseEntity<List<Producto>> response = productoController.getProductos();
+        @Test
+        void testGetProductos_ReturnsNoContentWhenNoProducts() throws Exception {
 
-        // Assert
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        assertEquals(null, response.getBody()); // Body should be null for NO_CONTENT
-        verify(productoService, times(1)).findAll();
-    }
+                List<Producto> productos = Arrays.asList();
+                when(productoService.findAll()).thenReturn(productos);
 
-    @Test
-    void testFindProducto_ReturnsOkWhenProductExists() {
-        // Arrange
-        Long productId = 1L;
-        Producto producto = new Producto(productId, true, "Laptop", 1200L, 10, "Dell");
-        when(productoService.existsById(productId)).thenReturn(true);
-        when(productoService.findById(productId)).thenReturn(Optional.of(producto));
+                mockMvc.perform(get("/api/v1/productos")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isNoContent())
+                                .andExpect(content().string(""));
 
-        // Act
-        ResponseEntity<Producto> response = productoController.findProducto(productId);
+                verify(productoService, times(1)).findAll();
+        }
 
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(producto, response.getBody());
-        verify(productoService, times(1)).existsById(productId);
-        verify(productoService, times(1)).findById(productId);
-    }
+        @Test
+        void testFindProducto_ReturnsOkWhenProductExists() throws Exception {
+                Long productId = 1L;
+                Producto producto = new Producto(productId, true, "Playstation 3", 1200L, 10, "Sony");
+                when(productoService.existsById(productId)).thenReturn(true);
+                when(productoService.findById(productId)).thenReturn(Optional.of(producto));
 
-    @Test
-    void testFindProducto_ReturnsNotFoundWhenProductDoesNotExist() {
-        // Arrange
-        Long productId = 1L;
-        when(productoService.existsById(productId)).thenReturn(false);
+                mockMvc.perform(get("/api/v1/productos/id/{id}", productId)
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id", is(productId.intValue())))
+                                .andExpect(jsonPath("$.nombre", is("Playstation 3")));
 
-        // Act
-        ResponseEntity<Producto> response = productoController.findProducto(productId);
+                verify(productoService, times(1)).existsById(productId);
+                verify(productoService, times(1)).findById(productId);
+        }
 
-        // Assert
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals(null, response.getBody());
-        verify(productoService, times(1)).existsById(productId);
-        verify(productoService, never()).findById(anyLong()); // Should not call findById
-    }
+        @Test
+        void testFindProducto_ReturnsNotFoundWhenProductDoesNotExist() throws Exception {
 
-    @Test
-    void testGetProductosById_ReturnsOk() {
-        // Arrange
-        List<Long> productIds = Arrays.asList(1L, 2L);
-        List<Producto> productos = Arrays.asList(
-                new Producto(1L, true, "Laptop", 1200L, 10, "Dell"),
-                new Producto(2L, true, "Mouse", 25L, 50, "Logitech")
-        );
-        when(productoService.findAllById(productIds)).thenReturn(productos);
+                Long productId = 1L;
+                when(productoService.existsById(productId)).thenReturn(false);
 
-        // Act
-        ResponseEntity<List<Producto>> response = productoController.getProductosById(productIds);
+                mockMvc.perform(get("/api/v1/productos/id/{id}", productId)
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isNotFound());
 
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(productos, response.getBody());
-        verify(productoService, times(1)).findAllById(productIds);
-    }
+                verify(productoService, times(1)).existsById(productId);
+                verify(productoService, times(0)).findById(anyLong());
+        }
 
-    @Test
-    void testSaveProducto_ReturnsOkWhenProductDoesNotExist() {
-        // Arrange
-        Producto newProducto = new Producto(3L, true, "Keyboard", 75L, 20, "Razer");
-        when(productoService.existsById(newProducto.getId())).thenReturn(false);
-        when(productoService.save(newProducto)).thenReturn(newProducto);
+        @Test
+        void testGetProductosById_ReturnsOk() throws Exception {
 
-        // Act
-        ResponseEntity<Producto> response = productoController.saveProducto(newProducto);
+                List<Long> productIds = Arrays.asList(1L, 2L);
+                List<Producto> productos = Arrays.asList(
+                                new Producto(1L, true, "Playstation 3", 1200L, 10, "Sony"),
+                                new Producto(2L, true, "Xbox 360", 25L, 50, "Microsoft"));
+                when(productoService.findAllById(anyList())).thenReturn(productos);
 
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(newProducto, response.getBody());
-        verify(productoService, times(1)).existsById(newProducto.getId());
-        verify(productoService, times(1)).save(newProducto);
-    }
+                mockMvc.perform(get("/api/v1/productos/by-id/")
+                                .param("ids", "1", "2")
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$", hasSize(2)))
+                                .andExpect(jsonPath("$[0].id", is(1)))
+                                .andExpect(jsonPath("$[1].id", is(2)));
 
-    @Test
-    void testSaveProducto_ReturnsConflictWhenProductExists() {
-        // Arrange
-        Producto existingProducto = new Producto(1L, true, "Laptop", 1200L, 10, "Dell");
-        when(productoService.existsById(existingProducto.getId())).thenReturn(true);
+                verify(productoService, times(1)).findAllById(productIds);
+        }
 
-        // Act
-        ResponseEntity<Producto> response = productoController.saveProducto(existingProducto);
+        @Test
+        void testSaveProducto_ReturnsOkWhenProductDoesNotExist() throws Exception {
 
-        // Assert
-        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
-        assertEquals(null, response.getBody());
-        verify(productoService, times(1)).existsById(existingProducto.getId());
-        verify(productoService, never()).save(any(Producto.class)); // Should not call save
-    }
+                Producto newProducto = new Producto(3L, true, "Keyboard", 75L, 20, "Razer");
+                when(productoService.existsById(newProducto.getId())).thenReturn(false);
+                when(productoService.save(any(Producto.class))).thenReturn(newProducto);
 
-    @Test
-    void testUpdateProducto_ReturnsOkWhenProductExists() {
-        // Arrange
-        Long productId = 1L;
-        Producto updatedProducto = new Producto(productId, true, "Laptop Pro", 1500L, 15, "Dell");
-        when(productoService.existsById(productId)).thenReturn(true);
-        when(productoService.update(productId, updatedProducto)).thenReturn(updatedProducto);
+                mockMvc.perform(post("/api/v1/productos")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(newProducto)))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id", is(newProducto.getId().intValue())))
+                                .andExpect(jsonPath("$.nombre", is(newProducto.getNombre())));
 
-        // Act
-        ResponseEntity<Producto> response = productoController.updateProducto(productId, updatedProducto);
+                verify(productoService, times(1)).existsById(newProducto.getId());
+                verify(productoService, times(1)).save(any(Producto.class));
+        }
 
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(updatedProducto, response.getBody());
-        verify(productoService, times(1)).existsById(productId);
-        verify(productoService, times(1)).update(productId, updatedProducto);
-    }
+        @Test
+        void testSaveProducto_ReturnsConflictWhenProductExists() throws Exception {
 
-    @Test
-    void testUpdateProducto_ReturnsNotFoundWhenProductDoesNotExist() {
-        // Arrange
-        Long productId = 1L;
-        Producto updatedProducto = new Producto(productId, true, "Laptop Pro", 1500L, 15, "Dell");
-        when(productoService.existsById(productId)).thenReturn(false);
+                Producto existingProducto = new Producto(1L, true, "Playstation 3", 1200L, 10, "Sony");
+                when(productoService.existsById(existingProducto.getId())).thenReturn(true);
 
-        // Act
-        ResponseEntity<Producto> response = productoController.updateProducto(productId, updatedProducto);
+                mockMvc.perform(post("/api/v1/productos")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(existingProducto)))
+                                .andExpect(status().isConflict());
 
-        // Assert
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals(null, response.getBody());
-        verify(productoService, times(1)).existsById(productId);
-        verify(productoService, never()).update(anyLong(), any(Producto.class)); // Should not call update
-    }
+                verify(productoService, times(1)).existsById(existingProducto.getId());
+                verify(productoService, times(0)).save(any(Producto.class));
+        }
 
-    @Test
-    void testDeleteProducto_ReturnsNoContentWhenProductExists() {
-        // Arrange
-        Long productId = 1L;
-        when(productoService.existsById(productId)).thenReturn(true);
-        doNothing().when(productoService).deleteById(productId);
+        @Test
+        void testUpdateProducto_ReturnsOkWhenProductExists() throws Exception {
 
-        // Act
-        ResponseEntity<Void> response = productoController.deleteProducto(productId);
+                Long productId = 1L;
+                Producto updatedProducto = new Producto(productId, true, "Playstation 3 Pro", 1500L, 15, "Sony");
+                when(productoService.existsById(productId)).thenReturn(true);
+                when(productoService.update(anyLong(), any(Producto.class))).thenReturn(updatedProducto);
 
-        // Assert
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        assertEquals(null, response.getBody());
-        verify(productoService, times(1)).existsById(productId);
-        verify(productoService, times(1)).deleteById(productId);
-    }
+                mockMvc.perform(put("/api/v1/productos/id/{id}", productId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(updatedProducto)))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.id", is(updatedProducto.getId().intValue())))
+                                .andExpect(jsonPath("$.nombre", is(updatedProducto.getNombre())));
 
-    @Test
-    void testDeleteProducto_ReturnsNotFoundWhenProductDoesNotExist() {
-        // Arrange
-        Long productId = 1L;
-        when(productoService.existsById(productId)).thenReturn(false);
+                verify(productoService, times(1)).existsById(productId);
+                verify(productoService, times(1)).update(anyLong(), any(Producto.class));
+        }
 
-        // Act
-        ResponseEntity<Void> response = productoController.deleteProducto(productId);
+        @Test
+        void testUpdateProducto_ReturnsNotFoundWhenProductDoesNotExist() throws Exception {
 
-        // Assert
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals(null, response.getBody());
-        verify(productoService, times(1)).existsById(productId);
-        verify(productoService, never()).deleteById(anyLong()); // Should not call deleteById
-    }
+                Long productId = 1L;
+                Producto updatedProducto = new Producto(productId, true, "Playstation 3 Pro", 1500L, 15, "Sony");
+                when(productoService.existsById(productId)).thenReturn(false);
+
+                mockMvc.perform(put("/api/v1/productos/id/{id}", productId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(updatedProducto)))
+                                .andExpect(status().isNotFound());
+
+                verify(productoService, times(1)).existsById(productId);
+                verify(productoService, times(0)).update(anyLong(), any(Producto.class));
+        }
+
+        @Test
+        void testDeleteProducto_ReturnsNoContentWhenProductExists() throws Exception {
+
+                Long productId = 1L;
+                when(productoService.existsById(productId)).thenReturn(true);
+                doNothing().when(productoService).deleteById(productId);
+
+                mockMvc.perform(delete("/api/v1/productos/id/{id}", productId)
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isNoContent());
+
+                verify(productoService, times(1)).existsById(productId);
+                verify(productoService, times(1)).deleteById(productId);
+        }
+
+        @Test
+        void testDeleteProducto_ReturnsNotFoundWhenProductDoesNotExist() throws Exception {
+
+                Long productId = 1L;
+                when(productoService.existsById(productId)).thenReturn(false);
+
+                mockMvc.perform(delete("/api/v1/productos/id/{id}", productId)
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isNotFound());
+
+                verify(productoService, times(1)).existsById(productId);
+                verify(productoService, times(0)).deleteById(anyLong());
+        }
 }
