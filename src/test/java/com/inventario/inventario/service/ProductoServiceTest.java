@@ -71,7 +71,6 @@ public class ProductoServiceTest {
         verify(productoRepository).findAllById(ids);
     }
 
-    // EXISTS BY ID
     @Test
     void testExistsById() {
         Long idExistente = 1L;
