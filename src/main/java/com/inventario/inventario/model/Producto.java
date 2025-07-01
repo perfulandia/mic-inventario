@@ -22,7 +22,7 @@ public class Producto {
     private Long id;
     
     @Column(nullable = false)
-    private boolean activo;
+    private Boolean activo;
     
     @Column(length = 100, nullable = false, unique = true)
     private String nombre;
